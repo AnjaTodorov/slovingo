@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:slovingo/providers/app_provider.dart';
-import 'package:slovingo/theme.dart';
 
 class TranslateScreen extends StatefulWidget {
   const TranslateScreen({super.key});

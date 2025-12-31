@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppSpacing {
-  
+
   static const double xs = 4.0;
   static const double sm = 8.0;
   static const double md = 16.0;
@@ -21,14 +21,13 @@ class AppSpacing {
   static const EdgeInsets horizontalMd = EdgeInsets.symmetric(horizontal: md);
   static const EdgeInsets horizontalLg = EdgeInsets.symmetric(horizontal: lg);
   static const EdgeInsets horizontalXl = EdgeInsets.symmetric(horizontal: xl);
-  
+
   static const EdgeInsets verticalXs = EdgeInsets.symmetric(vertical: xs);
   static const EdgeInsets verticalSm = EdgeInsets.symmetric(vertical: sm);
   static const EdgeInsets verticalMd = EdgeInsets.symmetric(vertical: md);
   static const EdgeInsets verticalLg = EdgeInsets.symmetric(vertical: lg);
   static const EdgeInsets verticalXl = EdgeInsets.symmetric(vertical: xl);
 }
-
 
 class AppRadius {
   static const double sm = 8.0;
@@ -42,7 +41,6 @@ extension TextStyleContext on BuildContext {
 }
 
 extension TextStyleExtensions on TextStyle {
- 
   TextStyle get bold => copyWith(fontWeight: FontWeight.bold);
   TextStyle get semiBold => copyWith(fontWeight: FontWeight.w600);
   TextStyle get medium => copyWith(fontWeight: FontWeight.w500);
@@ -53,7 +51,6 @@ extension TextStyleExtensions on TextStyle {
 }
 
 class LightModeColors {
-
   static const lightPrimary = Color(0xFF00BFA5);
   static const lightOnPrimary = Color(0xFFFFFFFF);
   static const lightPrimaryContainer = Color(0xFFB2DFDB);
@@ -82,7 +79,6 @@ class LightModeColors {
 }
 
 class DarkModeColors {
-
   static const darkPrimary = Color(0xFF4DB6AC);
   static const darkOnPrimary = Color(0xFF000000);
   static const darkPrimaryContainer = Color(0xFF00695C);
@@ -91,7 +87,7 @@ class DarkModeColors {
   static const darkSecondary = Color(0xFFB388FF);
   static const darkOnSecondary = Color(0xFF000000);
 
-  static const darkTertiary = Color(0xFFFFD54F);
+  static const darkTertiary =  Color(0xFFFFC107);
   static const darkOnTertiary = Color(0xFF000000);
 
   static const darkError = Color(0xFFEF5350);
@@ -107,6 +103,8 @@ class DarkModeColors {
   static const darkOutline = Color(0xFF757575);
   static const darkShadow = Color(0xFF000000);
   static const darkInversePrimary = Color(0xFF00BFA5);
+  static const back = Color(0xFFE3F8F8);
+
 }
 
 class FontSizes {
@@ -216,7 +214,7 @@ ThemeData get darkTheme => ThemeData(
   textTheme: _buildTextTheme(Brightness.dark),
 );
 
-
+/// Build text theme using Inter font family
 TextTheme _buildTextTheme(Brightness brightness) {
   return TextTheme(
     displayLarge: GoogleFonts.inter(
