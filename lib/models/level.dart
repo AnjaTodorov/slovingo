@@ -3,6 +3,7 @@ class Level {
   final int levelNumber;
   final String title;
   final String description;
+  final String levelCategory; // lesson | quiz | test
   final bool isLocked;
   final List<String> wordIds;
   final int requiredScore;
@@ -14,6 +15,7 @@ class Level {
     required this.levelNumber,
     required this.title,
     required this.description,
+    this.levelCategory = 'lesson',
     this.isLocked = true,
     required this.wordIds,
     this.requiredScore = 70,
@@ -26,6 +28,7 @@ class Level {
     'levelNumber': levelNumber,
     'title': title,
     'description': description,
+    'levelCategory': levelCategory,
     'isLocked': isLocked ? 1 : 0,
     'wordIds': wordIds.join(','),
     'requiredScore': requiredScore,
@@ -38,6 +41,7 @@ class Level {
     levelNumber: json['levelNumber'] as int,
     title: json['title'] as String,
     description: json['description'] as String,
+    levelCategory: (json['levelCategory'] as String?) ?? 'lesson',
     isLocked: (json['isLocked'] is int ? json['isLocked'] == 1 : json['isLocked']) as bool,
     wordIds: (json['wordIds'] as String).split(','),
     requiredScore: json['requiredScore'] as int? ?? 70,
@@ -50,6 +54,7 @@ class Level {
     int? levelNumber,
     String? title,
     String? description,
+    String? levelCategory,
     bool? isLocked,
     List<String>? wordIds,
     int? requiredScore,
@@ -60,6 +65,7 @@ class Level {
     levelNumber: levelNumber ?? this.levelNumber,
     title: title ?? this.title,
     description: description ?? this.description,
+    levelCategory: levelCategory ?? this.levelCategory,
     isLocked: isLocked ?? this.isLocked,
     wordIds: wordIds ?? this.wordIds,
     requiredScore: requiredScore ?? this.requiredScore,

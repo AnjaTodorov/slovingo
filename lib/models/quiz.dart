@@ -25,7 +25,8 @@ class Quiz {
     'id': id,
     'levelId': levelId,
     'question': question,
-    'options': options.join('|'),
+    // Use ';' delimiter for consistency with seeded data; safe to parse both ';' and '|' when reading.
+    'options': options.join(';'),
     'correctAnswer': correctAnswer,
     'type': type.toString().split('.').last,
     'createdAt': createdAt.toIso8601String(),
@@ -36,7 +37,10 @@ class Quiz {
     id: json['id'] as String,
     levelId: json['levelId'] as String,
     question: json['question'] as String,
-    options: (json['options'] as String).split('|'),
+    options: (json['options'] as String)
+        .split(RegExp(r'[|;]'))
+        .where((o) => o.isNotEmpty)
+        .toList(),
     correctAnswer: json['correctAnswer'] as String,
     type: QuizType.values.firstWhere(
       (e) => e.toString().split('.').last == json['type'],

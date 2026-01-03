@@ -59,22 +59,22 @@ class _MainNavigationState extends State<MainNavigation> {
             NavigationDestination(
               icon: Icon(Icons.home_outlined, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
               selectedIcon: Icon(Icons.home, color: Theme.of(context).colorScheme.primary),
-              label: 'Domov',
+              label: 'Home',
             ),
             NavigationDestination(
               icon: Icon(Icons.translate, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
               selectedIcon: Icon(Icons.translate, color: Theme.of(context).colorScheme.primary),
-              label: 'Prevod',
+              label: 'Translate',
             ),
             NavigationDestination(
               icon: Icon(Icons.chat_bubble_outline, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
               selectedIcon: Icon(Icons.chat_bubble, color: Theme.of(context).colorScheme.primary),
-              label: 'Klepet',
+              label: 'Chat',
             ),
             NavigationDestination(
               icon: Icon(Icons.person_outline, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
               selectedIcon: Icon(Icons.person, color: Theme.of(context).colorScheme.primary),
-              label: 'Profil',
+              label: 'Profile',
             ),
           ],
         ),

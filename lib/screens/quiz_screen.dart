@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:slovingo/providers/app_provider.dart';
-import 'package:slovingo/models/quiz.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:slovingo/models/lesson_task.dart';
+import 'package:slovingo/providers/app_provider.dart';
 
 class QuizScreen extends StatefulWidget {
   final String levelId;
-
   const QuizScreen({super.key, required this.levelId});
 
   @override
@@ -14,66 +13,147 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  int _currentQuestionIndex = 0;
-  final List<String> _userAnswers = [];
-  List<Quiz> _quizzes = [];
+  int _currentIndex = 0;
+  int _correct = 0;
+  int _score = 0;
   bool _isLoading = true;
   bool _showResult = false;
-  int _score = 0;
+  bool _answered = false;
+  bool _showExplanation = false;
+  String _feedback = '';
+  final TextEditingController _writeController = TextEditingController();
+
+  List<LessonTask> _tasks = [];
 
   @override
   void initState() {
     super.initState();
-    _loadQuizzes();
+    _loadTasks();
   }
 
-  Future<void> _loadQuizzes() async {
+  Future<void> _loadTasks() async {
     final provider = Provider.of<AppProvider>(context, listen: false);
-    final quizzes = await provider.getQuizzesByLevel(widget.levelId);
+    final tasks = await provider.getTasksByLevel(widget.levelId);
     setState(() {
-      _quizzes = quizzes;
+      _tasks = tasks;
       _isLoading = false;
     });
   }
 
+  @override
+  void dispose() {
+    _writeController.dispose();
+    super.dispose();
+  }
+
   void _selectAnswer(String answer) {
+    if (_answered) return;
+    final current = _tasks[_currentIndex];
+    final isCorrect = answer.trim().toLowerCase() ==
+        current.correctAnswer.trim().toLowerCase();
     setState(() {
-      _userAnswers.add(answer);
-      if (_currentQuestionIndex < _quizzes.length - 1) {
-        _currentQuestionIndex++;
-      } else {
-        _finishQuiz();
-      }
+      _answered = true;
+      _showExplanation = false;
+      _feedback = isCorrect ? 'Correct!' : 'Incorrect.';
+      if (isCorrect) _correct++;
+      _score = ((_correct / _tasks.length) * 100).round();
     });
   }
 
-  void _finishQuiz() {
+  void _next() {
+    if (_currentIndex < _tasks.length - 1) {
+      setState(() {
+        _currentIndex++;
+        _answered = false;
+        _showExplanation = false;
+        _feedback = '';
+        _writeController.clear();
+      });
+    } else {
+      _finish();
+    }
+  }
+
+  void _finish() {
     final provider = Provider.of<AppProvider>(context, listen: false);
-    final score = provider.calculateQuizScore(_userAnswers, _quizzes);
-    
-    provider.completeLevel(widget.levelId, score);
-    
+    final finalScore = ((_correct / _tasks.length) * 100).round();
+    provider.completeLevel(widget.levelId, finalScore);
     setState(() {
-      _score = score;
+      _score = finalScore;
       _showResult = true;
     });
   }
 
+  Widget _buildOptions(LessonTask task, ThemeData theme) {
+    if (task.kind == LessonTaskKind.writeIn) {
+      return Column(
+        children: [
+          TextField(
+            controller: _writeController,
+            decoration: const InputDecoration(
+              hintText: 'Type your answer',
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _answered ? null : () => _selectAnswer(_writeController.text),
+              child: const Text('Submit'),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      children: task.options.map((option) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: InkWell(
+            onTap: _answered ? null : () => _selectAnswer(option),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: Text(
+                option,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    if (_quizzes.isEmpty) {
+    if (_tasks.isEmpty) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Kviz'),
+          title: const Text('Quiz'),
         ),
         body: const Center(
-          child: Text('Ni vprašanj za ta nivo.'),
+          child: Text('No questions for this level.'),
         ),
       );
     }
@@ -89,34 +169,34 @@ class _QuizScreenState extends State<QuizScreen> {
                 Icon(
                   _score >= 70 ? Icons.emoji_events : Icons.error_outline,
                   size: 100,
-                  color: _score >= 70 
-                      ? Theme.of(context).colorScheme.tertiary 
-                      : Theme.of(context).colorScheme.error,
+                  color: _score >= 70
+                      ? theme.colorScheme.tertiary
+                      : theme.colorScheme.error,
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  _score >= 70 ? 'Čestitamo! 🎉' : 'Poskusite znova',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  _score >= 70 ? 'Great job!' : 'Try again',
+                  style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Vaš rezultat: $_score%',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: _score >= 70 
-                        ? Theme.of(context).colorScheme.primary 
-                        : Theme.of(context).colorScheme.error,
+                  'Your score: $_score%',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: _score >= 70
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.error,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   _score >= 70
-                      ? 'Odlično ste opravili kviz! Naslednji nivo je odklenjen.'
-                      : 'Za napredovanje potrebujete vsaj 70%. Poskusite znova!',
-                  style: Theme.of(context).textTheme.bodyLarge,
+                      ? 'You passed! Next level unlocked.'
+                      : 'You need at least 70% to proceed. Try again!',
+                  style: theme.textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
@@ -129,16 +209,16 @@ class _QuizScreenState extends State<QuizScreen> {
                       context.pop();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     child: Text(
-                      'Nazaj na nivoje',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimary,
+                      'Back to levels',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.onPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -152,23 +232,28 @@ class _QuizScreenState extends State<QuizScreen> {
                     child: OutlinedButton(
                       onPressed: () {
                         setState(() {
-                          _currentQuestionIndex = 0;
-                          _userAnswers.clear();
+                          _currentIndex = 0;
+                          _correct = 0;
+                          _score = 0;
+                          _answered = false;
+                          _showExplanation = false;
+                          _feedback = '';
+                          _writeController.clear();
                           _showResult = false;
                         });
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: theme.colorScheme.primary,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: Text(
-                        'Poskusi znova',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
+                        'Try again',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -182,8 +267,8 @@ class _QuizScreenState extends State<QuizScreen> {
       );
     }
 
-    final currentQuiz = _quizzes[_currentQuestionIndex];
-    
+    final currentTask = _tasks[_currentIndex];
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -202,17 +287,17 @@ class _QuizScreenState extends State<QuizScreen> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: LinearProgressIndicator(
-                            value: (_currentQuestionIndex + 1) / _quizzes.length,
+                            value: (_currentIndex + 1) / _tasks.length,
                             minHeight: 8,
-                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                            color: Theme.of(context).colorScheme.primary,
+                            backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        '${_currentQuestionIndex + 1}/${_quizzes.length}',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        '${_currentIndex + 1}/${_tasks.length}',
+                        style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -227,75 +312,20 @@ class _QuizScreenState extends State<QuizScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            currentQuiz.type == QuizType.multipleChoice
-                                ? Icons.check_circle_outline
-                                : currentQuiz.type == QuizType.fillBlank
-                                    ? Icons.edit_outlined
-                                    : Icons.translate,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            currentQuiz.type == QuizType.multipleChoice
-                                ? 'Izberi odgovor'
-                                : currentQuiz.type == QuizType.fillBlank
-                                    ? 'Dopolni stavek'
-                                    : 'Prevedi',
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
                     Text(
-                      currentQuiz.question,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      currentTask.question,
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 32),
                     Expanded(
                       child: ListView(
-                        children: currentQuiz.options.map((option) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: InkWell(
-                              onTap: () => _selectAnswer(option),
-                              borderRadius: BorderRadius.circular(16),
-                              child: Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.surface,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                                    width: 2,
-                                  ),
-                                ),
-                                child: Text(
-                                  option,
-                                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                        padding: EdgeInsets.zero,
+                        children: [
+                          _buildOptions(currentTask, theme),
+                          const SizedBox(height: 120),
+                        ],
                       ),
                     ),
                   ],
@@ -305,6 +335,80 @@ class _QuizScreenState extends State<QuizScreen> {
           ],
         ),
       ),
+      bottomNavigationBar: _answered
+          ? Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _feedback == 'Correct!'
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.error,
+              ),
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _feedback,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: _feedback == 'Correct!'
+                            ? theme.colorScheme.onPrimary
+                            : theme.colorScheme.onError,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (_feedback != 'Correct!') ...[
+                      const SizedBox(height: 6),
+                      TextButton(
+                        onPressed: () {
+                          setState(() => _showExplanation = !_showExplanation);
+                        },
+                        child: Text(
+                          _showExplanation ? 'Hide explanation' : 'Show explanation',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: _feedback == 'Correct!'
+                                ? theme.colorScheme.onPrimary
+                                : theme.colorScheme.onError,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      if (_showExplanation)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            currentTask.explanation,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: _feedback == 'Correct!'
+                                  ? theme.colorScheme.onPrimary
+                                  : theme.colorScheme.onError,
+                            ),
+                          ),
+                        ),
+                    ],
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.colorScheme.onPrimary,
+                          foregroundColor: theme.colorScheme.primary,
+                        ),
+                        onPressed: _next,
+                        child: Text(
+                          _currentIndex == _tasks.length - 1 ? 'Finish' : 'Next',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : null,
     );
   }
 }

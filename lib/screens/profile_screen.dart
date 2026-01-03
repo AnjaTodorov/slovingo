@@ -1,59 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:slovingo/providers/app_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
-  // ignore: unused_element
-  void _showApiKeyDialog(BuildContext context) {
-    final TextEditingController controller = TextEditingController();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Nastavi OpenAI API ključ'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Za uporabo prevajalnika in AI učitelja potrebujete OpenAI API ključ.',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                hintText: 'sk-...',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Prekliči'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final provider = Provider.of<AppProvider>(context, listen: false);
-              await provider.saveApiKey(controller.text);
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('API ključ shranjen')),
-                );
-              }
-            },
-            child: const Text('Shrani'),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,10 +21,10 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Profil',
+                    'Profile',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 32),
                   Center(
@@ -93,33 +45,33 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Center(
                     child: Text(
-                      user?.name ?? 'Učenec',
+                      user?.name ?? 'Learner',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                   Center(
                     child: Text(
                       user?.email ?? '',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
                     ),
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    'Statistika',
+                    'Statistics',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   FutureBuilder<Map<String, dynamic>>(
                     future: provider.getUserStatistics(),
                     builder: (context, snapshot) {
                       final stats = snapshot.data ?? {};
-                      
+
                       return Column(
                         children: [
                           Row(
@@ -127,7 +79,7 @@ class ProfileScreen extends StatelessWidget {
                               Expanded(
                                 child: StatCard(
                                   icon: Icons.emoji_events,
-                                  title: 'Točke',
+                                  title: 'Points',
                                   value: '${user?.totalPoints ?? 0}',
                                   color: Theme.of(context).colorScheme.tertiary,
                                 ),
@@ -136,7 +88,7 @@ class ProfileScreen extends StatelessWidget {
                               Expanded(
                                 child: StatCard(
                                   icon: Icons.local_fire_department,
-                                  title: 'Zaporedje',
+                                  title: 'Streak',
                                   value: '${user?.streak ?? 0}',
                                   color: Colors.deepOrange,
                                 ),
@@ -149,7 +101,7 @@ class ProfileScreen extends StatelessWidget {
                               Expanded(
                                 child: StatCard(
                                   icon: Icons.check_circle,
-                                  title: 'Nivoji',
+                                  title: 'Levels',
                                   value: '${stats['completedLevels'] ?? 0}',
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
@@ -158,7 +110,7 @@ class ProfileScreen extends StatelessWidget {
                               Expanded(
                                 child: StatCard(
                                   icon: Icons.star,
-                                  title: 'Povprečje',
+                                  title: 'Average',
                                   value: '${stats['averageScore'] ?? 0}%',
                                   color: Theme.of(context).colorScheme.secondary,
                                 ),
@@ -171,39 +123,55 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    'Nastavitve',
+                    'Settings',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                  //const SizedBox(height: 16),
-                 // SettingsCard(
-                    //icon: Icons.key,
-                    //title: 'OpenAI API ključ',
-                    //subtitle: 'Za prevajalnik in AI učitelja',
-                    //onTap: () => _showApiKeyDialog(context),
-                  //),
+                  const SizedBox(height: 12),
+                  SettingsCard(
+                    icon: Icons.brightness_6,
+                    title: 'Theme',
+                    subtitle: provider.themeMode == ThemeMode.dark
+                        ? 'Dark mode (tap to switch)'
+                        : 'Light mode (tap to switch)',
+                    onTap: () {
+                      provider.toggleTheme();
+                    },
+                  ),
                   const SizedBox(height: 12),
                   SettingsCard(
                     icon: Icons.info,
-                    title: 'O aplikaciji',
+                    title: 'About',
                     subtitle: 'Slovingo v1.0.0',
                     onTap: () {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('O aplikaciji'),
+                          title: const Text('About'),
                           content: const Text(
-                            'Slovingo je aplikacija za učenje slovenskega jezika z interaktivnimi lekcijami, AI učiteljem in prevajalником.\n\nRazličica: 1.0.0',
+                            'Slovingo is a Slovenian learning app with interactive lessons, an AI tutor, and translator.\n\nVersion: 1.0.0',
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
-                              child: const Text('Zapri'),
+                              child: const Text('Close'),
                             ),
                           ],
                         ),
                       );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  SettingsCard(
+                    icon: Icons.logout,
+                    title: 'Logout',
+                    subtitle: 'Sign out of your account',
+                    onTap: () async {
+                      await FirebaseAuth.instance.signOut();
+                      if (context.mounted) {
+                        context.go('/login');
+                      }
                     },
                   ),
                 ],
@@ -248,16 +216,16 @@ class StatCard extends StatelessWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
           ),
         ],
       ),
@@ -315,14 +283,14 @@ class SettingsCard extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
                   ),
                 ],
               ),

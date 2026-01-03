@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -21,66 +20,72 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final GoRouter _router = GoRouter(
+    refreshListenable: GoRouterRefreshStream(
+      FirebaseAuth.instance.authStateChanges(),
+    ),
+    redirect: (context, state) {
+      final loggedIn = FirebaseAuth.instance.currentUser != null;
+      final loggingIn = state.matchedLocation == '/login';
+      if (!loggedIn && !loggingIn) return '/login';
+      if (loggedIn && loggingIn) return '/';
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/login',
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: LoginScreen()),
+      ),
+      GoRoute(
+        path: '/',
+        name: 'home',
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: MainNavigation()),
+      ),
+      GoRoute(
+        path: '/level/:id',
+        pageBuilder: (context, state) {
+          final level = state.extra as Level;
+          return MaterialPage(
+            child: LevelDetailScreen(level: level),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/quiz/:levelId',
+        pageBuilder: (context, state) {
+          final levelId = state.pathParameters['levelId']!;
+          return MaterialPage(
+            child: QuizScreen(levelId: levelId),
+          );
+        },
+      ),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AppProvider(),
-      child: Consumer<AppProvider>(
-        builder: (context, app, _) {
-          final router = GoRouter(
-            refreshListenable: GoRouterRefreshStream(
-              FirebaseAuth.instance.authStateChanges(),
-            ),
-            redirect: (context, state) {
-              final loggedIn = FirebaseAuth.instance.currentUser != null;
-              final loggingIn = state.matchedLocation == '/login';
-              if (!loggedIn && !loggingIn) return '/login';
-              if (loggedIn && loggingIn) return '/';
-              return null;
-            },
-            routes: [
-              GoRoute(
-                path: '/login',
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: LoginScreen()),
-              ),
-              GoRoute(
-                path: '/',
-                name: 'home',
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: MainNavigation()),
-              ),
-              GoRoute(
-                path: '/level/:id',
-                pageBuilder: (context, state) {
-                  final level = state.extra as Level;
-                  return MaterialPage(
-                    child: LevelDetailScreen(level: level),
-                  );
-                },
-              ),
-              GoRoute(
-                path: '/quiz/:levelId',
-                pageBuilder: (context, state) {
-                  final levelId = state.pathParameters['levelId']!;
-                  return MaterialPage(
-                    child: QuizScreen(levelId: levelId),
-                  );
-                },
-              ),
-            ],
-          );
-
+      child: Selector<AppProvider, ThemeMode>(
+        selector: (_, app) => app.themeMode,
+        builder: (context, themeMode, _) {
           return MaterialApp.router(
             title: 'Slovingo',
             debugShowCheckedModeBanner: false,
             theme: lightTheme,
             darkTheme: darkTheme,
-            themeMode: app.themeMode,
-            routerConfig: router,
+            themeMode: themeMode,
+            routerConfig: _router,
           );
         },
       ),
