@@ -34,7 +34,7 @@ class WordOfDayCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Beseda dneva',
+                'Word of the day',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onTertiaryContainer,
@@ -47,7 +47,7 @@ class WordOfDayCard extends StatelessWidget {
             word.slovenian,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.tertiary,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 4),

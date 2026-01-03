@@ -1,39 +1,29 @@
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import 'package:slovingo/models/user.dart';
+import 'package:slovingo/services/database_helper.dart';
+import 'package:sqflite/sqflite.dart';
 
 class UserService {
-  static const String _userKey = 'current_user';
-
-  Future<void> _initSampleData() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!prefs.containsKey(_userKey)) {
-      final sampleUser = User(
-        id: 'user_1',
-        name: 'Učenec',
-        email: 'ucenec@slovingo.si',
-        currentLevel: 1,
-        totalPoints: 0,
-        streak: 0,
-        lastActive: DateTime.now(),
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-      await prefs.setString(_userKey, jsonEncode(sampleUser.toJson()));
-    }
+  Future<User?> getCurrentUser() async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query('users', limit: 1);
+    if (rows.isEmpty) return null;
+    return User.fromJson(rows.first);
   }
 
-  Future<User?> getCurrentUser() async {
-    await _initSampleData();
-    final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString(_userKey);
-    if (userJson == null) return null;
-    return User.fromJson(jsonDecode(userJson));
+  Future<User?> getUserById(String userId) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query('users', where: 'id = ?', whereArgs: [userId], limit: 1);
+    if (rows.isEmpty) return null;
+    return User.fromJson(rows.first);
   }
 
   Future<void> updateUser(User user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userKey, jsonEncode(user.toJson()));
+    final db = await DatabaseHelper.instance.database;
+    await db.insert(
+      'users',
+      user.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> updateUserProgress(int level, int points) async {
@@ -55,7 +45,7 @@ class UserService {
       final now = DateTime.now();
       final lastActive = user.lastActive;
       final difference = now.difference(lastActive).inDays;
-      
+
       int newStreak = user.streak;
       if (difference == 1) {
         newStreak++;

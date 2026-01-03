@@ -17,14 +17,18 @@ class LevelCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: level.isLocked 
-              ? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
-              : Theme.of(context).colorScheme.surface,
+          color: level.levelCategory == 'test'
+              ? Theme.of(context).colorScheme.secondaryContainer
+              : level.isLocked 
+                  ? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+                  : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: level.isLocked
                 ? Theme.of(context).colorScheme.outline.withValues(alpha: 0.1)
-                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                : level.levelCategory == 'test'
+                    ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.4)
+                    : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -34,9 +38,11 @@ class LevelCard extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: level.isLocked
-                    ? Theme.of(context).colorScheme.surfaceContainerHighest
-                    : Theme.of(context).colorScheme.primaryContainer,
+                color: level.levelCategory == 'test'
+                    ? Theme.of(context).colorScheme.secondary
+                    : level.isLocked
+                        ? Theme.of(context).colorScheme.surfaceContainerHighest
+                        : Theme.of(context).colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -50,7 +56,9 @@ class LevelCard extends StatelessWidget {
                         '${level.levelNumber}',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: level.levelCategory == 'test'
+                              ? Theme.of(context).colorScheme.onSecondary
+                              : Theme.of(context).colorScheme.primary,
                         ),
                       ),
               ),
@@ -79,6 +87,29 @@ class LevelCard extends StatelessWidget {
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: level.levelCategory == 'test'
+                          ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15)
+                          : Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      level.levelCategory == 'test'
+                          ? 'Test'
+                          : level.levelCategory == 'quiz'
+                              ? 'Quiz'
+                              : 'Lesson',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: level.levelCategory == 'test'
+                                ? Theme.of(context).colorScheme.secondary
+                                : Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
                   ),
                 ],
               ),
