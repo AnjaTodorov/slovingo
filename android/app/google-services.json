@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1016415634982",
+    "project_id": "slovingo-13a9d",
+    "storage_bucket": "slovingo-13a9d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1016415634982:android:93a6f7c6268172141008e7",
+        "android_client_info": {
+          "package_name": "com.example.slovingo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE3HaaAnn9eC4dDTx2JcgFOaBo68DRCQo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
