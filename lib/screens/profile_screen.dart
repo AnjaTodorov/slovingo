@@ -7,6 +7,10 @@ import 'package:slovingo/providers/app_provider.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  void _showStreakCalendar(BuildContext context) {
+    context.push('/streak-calendar');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,11 +90,15 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: StatCard(
-                                  icon: Icons.local_fire_department,
-                                  title: 'Streak',
-                                  value: '${user?.streak ?? 0}',
-                                  color: Colors.deepOrange,
+                                child: InkWell(
+                                  onTap: () => _showStreakCalendar(context),
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: StatCard(
+                                    icon: Icons.local_fire_department,
+                                    title: 'Streak',
+                                    value: '${user?.streak ?? 0}',
+                                    color: Colors.deepOrange,
+                                  ),
                                 ),
                               ),
                             ],
@@ -168,6 +176,8 @@ class ProfileScreen extends StatelessWidget {
                     title: 'Logout',
                     subtitle: 'Sign out of your account',
                     onTap: () async {
+                      // Reset app provider state before signing out
+                      await provider.reset();
                       await FirebaseAuth.instance.signOut();
                       if (context.mounted) {
                         context.go('/login');

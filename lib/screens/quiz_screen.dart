@@ -88,18 +88,54 @@ class _QuizScreenState extends State<QuizScreen> {
     if (task.kind == LessonTaskKind.writeIn) {
       return Column(
         children: [
-          TextField(
-            controller: _writeController,
-            decoration: const InputDecoration(
-              hintText: 'Type your answer',
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
+            child: TextField(
+              controller: _writeController,
+              enabled: !_answered,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Type your answer here...',
+                hintStyle: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                filled: false,
+              ),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_answered ? null : (value) => _selectAnswer(value)),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            height: 54,
+            child: FilledButton(
               onPressed: _answered ? null : () => _selectAnswer(_writeController.text),
-              child: const Text('Submit'),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                'Submit Answer',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],

@@ -11,7 +11,9 @@ class FirestoreUserService {
     final doc = await _users.doc(uid).get();
     if (!doc.exists) return null;
     final data = doc.data()!;
-    return local.User(
+    final streakDaysData = data['streakDays'] as List<dynamic>?;
+    final streakDays = streakDaysData?.map((e) => e as String).toList() ?? <String>[];
+    final user = local.User(
       id: uid,
       name: data['name'] as String? ?? '',
       email: data['email'] as String? ?? '',
@@ -21,7 +23,9 @@ class FirestoreUserService {
       lastActive: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      streakDays: streakDays,
     );
+    return user;
   }
 
   Future<void> upsertUser(local.User user) async {
@@ -32,6 +36,7 @@ class FirestoreUserService {
       'level': user.currentLevel,
       'xp': user.totalPoints,
       'streak': user.streak,
+      'streakDays': user.streakDays,
       'createdAt': user.createdAt,
       'updatedAt': now,
     }, SetOptions(merge: true));

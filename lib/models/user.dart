@@ -8,6 +8,7 @@ class User {
   final DateTime lastActive;
   final DateTime createdAt;
   final DateTime updatedAt;
+  List<String> streakDays;
 
   User({
     required this.id,
@@ -19,7 +20,8 @@ class User {
     required this.lastActive,
     required this.createdAt,
     required this.updatedAt,
-  });
+    List<String>? streakDays,
+  }) : streakDays = streakDays ?? [];
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -55,6 +57,7 @@ class User {
     DateTime? lastActive,
     DateTime? createdAt,
     DateTime? updatedAt,
+    List<String>? streakDays,
   }) => User(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -65,5 +68,6 @@ class User {
     lastActive: lastActive ?? this.lastActive,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    streakDays: streakDays ?? this.streakDays,
   );
 }

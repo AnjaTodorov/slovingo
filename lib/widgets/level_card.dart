@@ -16,22 +16,26 @@ class LevelCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: level.levelCategory == 'test'
-              ? Theme.of(context).colorScheme.secondaryContainer
-              : level.isLocked 
-                  ? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
-                  : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: level.isLocked
-                ? Theme.of(context).colorScheme.outline.withValues(alpha: 0.1)
-                : level.levelCategory == 'test'
-                    ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.4)
-                    : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-            width: 2,
+          decoration: BoxDecoration(
+            color: level.levelCategory == 'test'
+                ? Theme.of(context).colorScheme.secondaryContainer
+                : level.levelCategory == 'quiz'
+                    ? Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.3)
+                    : level.isLocked 
+                        ? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+                        : Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: level.isLocked
+                  ? Theme.of(context).colorScheme.outline.withValues(alpha: 0.1)
+                  : level.levelCategory == 'test'
+                      ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.4)
+                      : level.levelCategory == 'quiz'
+                          ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.4)
+                          : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+              width: 2,
+            ),
           ),
-        ),
         child: Row(
           children: [
             Container(
@@ -40,9 +44,11 @@ class LevelCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: level.levelCategory == 'test'
                     ? Theme.of(context).colorScheme.secondary
-                    : level.isLocked
-                        ? Theme.of(context).colorScheme.surfaceContainerHighest
-                        : Theme.of(context).colorScheme.primaryContainer,
+                    : level.levelCategory == 'quiz'
+                        ? Theme.of(context).colorScheme.secondaryContainer
+                        : level.isLocked
+                            ? Theme.of(context).colorScheme.surfaceContainerHighest
+                            : Theme.of(context).colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -52,15 +58,21 @@ class LevelCard extends StatelessWidget {
                         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                         size: 28,
                       )
-                    : Text(
-                        '${level.levelNumber}',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: level.levelCategory == 'test'
-                              ? Theme.of(context).colorScheme.onSecondary
-                              : Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
+                    : level.levelCategory == 'quiz'
+                        ? Icon(
+                            Icons.quiz,
+                            color: Theme.of(context).colorScheme.onSecondaryContainer,
+                            size: 28,
+                          )
+                        : Text(
+                            '${level.levelNumber}',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: level.levelCategory == 'test'
+                                  ? Theme.of(context).colorScheme.onSecondary
+                                  : Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
               ),
             ),
             const SizedBox(width: 16),
@@ -94,7 +106,9 @@ class LevelCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: level.levelCategory == 'test'
                           ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15)
-                          : Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                          : level.levelCategory == 'quiz'
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -106,7 +120,9 @@ class LevelCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color: level.levelCategory == 'test'
                                 ? Theme.of(context).colorScheme.secondary
-                                : Theme.of(context).colorScheme.primary,
+                                : level.levelCategory == 'quiz'
+                                    ? Theme.of(context).colorScheme.onSecondaryContainer
+                                    : Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.w700,
                           ),
                     ),

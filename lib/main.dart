@@ -9,14 +9,18 @@ import 'package:slovingo/models/level.dart';
 import 'package:slovingo/providers/app_provider.dart';
 import 'package:slovingo/screens/level_detail_screen.dart';
 import 'package:slovingo/screens/login_screen.dart';
+import 'package:slovingo/screens/register_screen.dart';
 import 'package:slovingo/screens/main_navigation.dart';
 import 'package:slovingo/screens/quiz_screen.dart';
+import 'package:slovingo/screens/streak_calendar_screen.dart';
+import 'package:slovingo/services/notification_service.dart';
 import 'package:slovingo/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp();
+  await NotificationService().initialize();
   runApp(const MyApp());
 }
 
@@ -34,9 +38,9 @@ class _MyAppState extends State<MyApp> {
     ),
     redirect: (context, state) {
       final loggedIn = FirebaseAuth.instance.currentUser != null;
-      final loggingIn = state.matchedLocation == '/login';
-      if (!loggedIn && !loggingIn) return '/login';
-      if (loggedIn && loggingIn) return '/';
+      final isAuthPage = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+      if (!loggedIn && !isAuthPage) return '/login';
+      if (loggedIn && isAuthPage) return '/';
       return null;
     },
     routes: [
@@ -44,6 +48,11 @@ class _MyAppState extends State<MyApp> {
         path: '/login',
         pageBuilder: (context, state) =>
             const NoTransitionPage(child: LoginScreen()),
+      ),
+      GoRoute(
+        path: '/register',
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: RegisterScreen()),
       ),
       GoRoute(
         path: '/',
@@ -68,6 +77,12 @@ class _MyAppState extends State<MyApp> {
             child: QuizScreen(levelId: levelId),
           );
         },
+      ),
+      GoRoute(
+        path: '/streak-calendar',
+        pageBuilder: (context, state) => MaterialPage(
+          child: const StreakCalendarScreen(),
+        ),
       ),
     ],
   );

@@ -1,26 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:slovingo/models/user.dart' as local_user;
 import 'package:slovingo/services/auth_service.dart';
+import 'package:slovingo/services/firestore_user_service.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   String? _error;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -33,11 +40,32 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final auth = AuthService();
+    final fsUser = FirestoreUserService();
     try {
-      await auth.signIn(
+      final cred = await auth.register(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
+      
+      // Update display name
+      await cred.user?.updateDisplayName(_nameController.text.trim());
+      
+      final uid = cred.user?.uid;
+      if (uid != null) {
+        final now = DateTime.now();
+        await fsUser.upsertUser(local_user.User(
+          id: uid,
+          name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          currentLevel: 1,
+          totalPoints: 0,
+          streak: 0,
+          lastActive: now,
+          createdAt: now,
+          updatedAt: now,
+        ));
+      }
+      
       if (!mounted) return;
       context.go('/');
     } catch (e) {
@@ -58,8 +86,26 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final auth = AuthService();
+    final fsUser = FirestoreUserService();
     try {
-      await auth.signInWithGoogle();
+      final cred = await auth.signInWithGoogle();
+      final user = cred.user;
+      
+      if (user != null) {
+        final now = DateTime.now();
+        await fsUser.upsertUser(local_user.User(
+          id: user.uid,
+          name: user.displayName ?? 'User',
+          email: user.email ?? '',
+          currentLevel: 1,
+          totalPoints: 0,
+          streak: 0,
+          lastActive: now,
+          createdAt: now,
+          updatedAt: now,
+        ));
+      }
+      
       if (!mounted) return;
       context.go('/');
     } catch (e) {
@@ -99,13 +145,36 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Sign in to your account',
+                  'Create a new account',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 48),
+
+                // Name Field
+                TextFormField(
+                  controller: _nameController,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    prefixIcon: const Icon(Icons.person_outlined),
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
 
                 // Email Field
                 TextFormField(
@@ -138,8 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _submit(),
+                  textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outlined),
@@ -166,6 +234,44 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                     if (value.length < 6) {
                       return 'Password must be at least 6 characters';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Confirm Password Field
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirmPassword,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _submit(),
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    prefixIcon: const Icon(Icons.lock_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                      onPressed: () {
+                        setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                      },
+                    ),
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please confirm your password';
+                    }
+                    if (value != _passwordController.text) {
+                      return 'Passwords do not match';
                     }
                     return null;
                   },
@@ -197,7 +303,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 if (_error != null) const SizedBox(height: 24),
 
-                // Login Button
+                // Register Button
                 FilledButton(
                   onPressed: _isLoading ? null : _submit,
                   style: FilledButton.styleFrom(
@@ -213,7 +319,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Text(
-                          'Sign In',
+                          'Sign Up',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -260,17 +366,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Register Link
+                // Login Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Don\'t have an account? ',
+                      'Already have an account? ',
                       style: theme.textTheme.bodyMedium,
                     ),
                     TextButton(
-                      onPressed: () => context.go('/register'),
-                      child: Text('Sign Up'),
+                      onPressed: () => context.go('/login'),
+                      child: Text('Sign In'),
                     ),
                   ],
                 ),

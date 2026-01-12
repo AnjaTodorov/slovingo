@@ -54,14 +54,14 @@ class _TranslateScreenState extends State<TranslateScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Prevajalnik',
+                'Translator',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Prevajajte med angleščino in slovenščino',
+                'Translate between English and Slovenian',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
@@ -130,7 +130,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                         controller: _textController,
                         maxLines: 5,
                         decoration: InputDecoration(
-                          hintText: 'Vnesite besedilo za prevod...',
+                          hintText: 'Enter text to translate...',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -172,7 +172,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                             const Icon(Icons.translate, size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              'Prevedi',
+                              'Translate',
                               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                                 color: Theme.of(context).colorScheme.onPrimary,
                                 fontWeight: FontWeight.w600,
@@ -199,7 +199,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                           Icon(Icons.check_circle, color: Theme.of(context).colorScheme.tertiary, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'Prevod',
+                            'Translation',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                               color: Theme.of(context).colorScheme.onTertiaryContainer,
@@ -220,7 +220,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
               ],
               const SizedBox(height: 32),
               Text(
-                'Zgodovina prevodov',
+                'Translation History',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -233,7 +233,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(32),
                         child: Text(
-                          'Še nimate zgodovine prevodov',
+                          'No translation history yet',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                           ),

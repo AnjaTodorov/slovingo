@@ -18,7 +18,7 @@ class DatabaseHelper {
     final path = join(dbPath, filePath);
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -158,6 +158,12 @@ class DatabaseHelper {
           updatedAt $textType
         )
       ''');
+    }
+    if (oldVersion < 3) {
+      // Reset seed data tables to force reseeding with new data
+      await db.delete('levels');
+      await db.delete('words');
+      await db.delete('lesson_tasks');
     }
   }
 

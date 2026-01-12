@@ -12,7 +12,20 @@
           "package_name": "com.example.slovingo"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1016415634982-695aga0uiptl3orvd3cj5mjvnbikhj9m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.slovingo",
+            "certificate_hash": "0bb88c4d0e72be06966ff9872f2d8b3020a9c56d"
+          }
+        },
+        {
+          "client_id": "1016415634982-bnpokql80reu0gsemg22btfb0rmlnrh7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBE3HaaAnn9eC4dDTx2JcgFOaBo68DRCQo"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1016415634982-bnpokql80reu0gsemg22btfb0rmlnrh7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

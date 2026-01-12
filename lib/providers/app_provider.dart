@@ -17,6 +17,7 @@ import 'package:slovingo/services/seed_service.dart';
 import 'package:slovingo/services/firestore_user_service.dart';
 import 'package:slovingo/services/firestore_progress_service.dart';
 import 'package:slovingo/services/lesson_task_service.dart';
+import 'package:slovingo/services/notification_service.dart';
 
 class AppProvider with ChangeNotifier {
   final FirestoreUserService _fsUserService = FirestoreUserService();
@@ -53,8 +54,39 @@ class AppProvider with ChangeNotifier {
     _loadThemeMode();
   }
 
+  Future<void> reset() async {
+    _currentUser = null;
+    _levels = [];
+    _words = [];
+    _wordOfDay = null;
+    _translationHistory = [];
+    _chatMessages = [];
+    _initialized = false;
+    _initializing = false;
+    notifyListeners();
+  }
+
   Future<void> initialize() async {
-    if (_initializing || _initialized) return;
+    if (_initializing) return;
+    
+    final firebaseUser = fb_auth.FirebaseAuth.instance.currentUser;
+    
+    // If we're already initialized, check if the user has changed
+    if (_initialized) {
+      if (firebaseUser == null) {
+        // User logged out, reset state
+        await reset();
+        return;
+      }
+      if (_currentUser?.id != firebaseUser.uid) {
+        // Different user logged in, reset and reinitialize
+        await reset();
+      } else {
+        // Same user, no need to reinitialize
+        return;
+      }
+    }
+    
     _initializing = true;
     _isLoading = true;
     notifyListeners();
@@ -62,7 +94,6 @@ class AppProvider with ChangeNotifier {
     await DatabaseHelper.instance.database;
     await seedSample();
 
-    final firebaseUser = fb_auth.FirebaseAuth.instance.currentUser;
     if (firebaseUser == null) {
       _isLoading = false;
       _initializing = false;
@@ -105,6 +136,8 @@ class AppProvider with ChangeNotifier {
 
     if (_currentUser != null) {
       _chatMessages = await _chatService.getChatHistory(_currentUser!.id);
+      // Schedule daily reminder notifications
+      await NotificationService().scheduleDailyReminder();
     }
 
     _isLoading = false;
@@ -129,23 +162,45 @@ class AppProvider with ChangeNotifier {
   Future<void> updateStreak() async {
     if (_currentUser == null) return;
     final now = DateTime.now();
-    final lastActive = _currentUser!.lastActive;
-    final difference = now.difference(lastActive).inDays;
-
-    int newStreak = _currentUser!.streak;
-    if (difference == 1) {
-      newStreak++;
-    } else if (difference > 1) {
-      newStreak = 1;
+    final today = DateTime(now.year, now.month, now.day);
+    final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    
+    final streakDays = List<String>.from(_currentUser!.streakDays);
+    
+    // Add today if not already present
+    if (!streakDays.contains(todayStr)) {
+      streakDays.add(todayStr);
+      streakDays.sort();
+    }
+    
+    // Calculate streak: count consecutive days from today backwards
+    int newStreak = 0;
+    DateTime checkDate = today;
+    while (true) {
+      final checkStr = '${checkDate.year}-${checkDate.month.toString().padLeft(2, '0')}-${checkDate.day.toString().padLeft(2, '0')}';
+      if (streakDays.contains(checkStr)) {
+        newStreak++;
+        checkDate = checkDate.subtract(const Duration(days: 1));
+      } else {
+        break;
+      }
     }
 
     final updatedUser = _currentUser!.copyWith(
       streak: newStreak,
+      streakDays: streakDays,
       lastActive: now,
       updatedAt: now,
     );
     await _fsUserService.upsertUser(updatedUser);
+    final oldStreak = _currentUser!.streak;
     _currentUser = updatedUser;
+    
+    // Show notification if streak increased
+    if (newStreak > oldStreak) {
+      await NotificationService().showStreakAchievementNotification(newStreak);
+    }
+    
     notifyListeners();
   }
 
@@ -176,6 +231,9 @@ class AppProvider with ChangeNotifier {
 
     if (score >= 70) {
       await updateUserProgress(_currentUser!.currentLevel + 1, score);
+      
+      // Update streak when completing a level
+      await updateStreak();
     }
 
     await _applyUserLocks();

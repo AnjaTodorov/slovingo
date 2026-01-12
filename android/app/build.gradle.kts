@@ -14,6 +14,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -51,6 +52,9 @@ dependencies {
 
     // Material components (provides Theme.MaterialComponents.*)
     implementation("com.google.android.material:material:1.12.0")
+
+    // Core library desugaring for flutter_local_notifications
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 // Copy APK to Flutter's expected location so flutter run can find it
