@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:slovingo/models/user.dart' as local_user;
 import 'package:slovingo/services/auth_service.dart';
 import 'package:slovingo/services/firestore_user_service.dart';

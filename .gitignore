@@ -31,3 +31,5 @@ android/app/build/
 .idea/
 .vscode/
 *.iml
+
+.env
