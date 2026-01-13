@@ -1,14 +1,109 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:slovingo/providers/app_provider.dart';
+import 'package:slovingo/services/storage_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final StorageService _storageService = StorageService();
+  final ImagePicker _imagePicker = ImagePicker();
+  bool _isUploading = false;
+
+  Future<void> _pickAndUploadImage() async {
+    try {
+      final provider = Provider.of<AppProvider>(context, listen: false);
+      final user = provider.currentUser;
+      if (user == null) return;
+
+      // Show image source selection
+      final ImageSource? source = await showModalBottomSheet<ImageSource>(
+        context: context,
+        builder: (context) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take a Photo'),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      if (source == null) return;
+
+      final XFile? imageFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (imageFile == null) return;
+
+      setState(() {
+        _isUploading = true;
+      });
+
+      // Delete old image if exists
+      if (user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty) {
+        await _storageService.deleteProfileImage(user.profileImageUrl);
+      }
+
+      // Upload new image
+      final file = File(imageFile.path);
+      final imageUrl = await _storageService.uploadProfileImage(file);
+
+      // Update user profile
+      await provider.updateProfileImage(imageUrl);
+
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile picture updated!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
   void _showStreakCalendar(BuildContext context) {
-    context.push('/streak-calendar');
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    final user = provider.currentUser;
+    final streakDays = user?.streakDays ?? [];
+    final streakDaysSet = streakDays.toSet();
+    context.push('/streak-calendar', extra: {
+      'streakDays': streakDaysSet,
+      'streakCount': user?.streak ?? 0,
+    });
   }
 
   @override
@@ -32,18 +127,82 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   Center(
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.person,
-                        size: 50,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                              width: 3,
+                            ),
+                          ),
+                          child: ClipOval(
+                            child: user?.profileImageUrl != null && user!.profileImageUrl!.isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: user.profileImageUrl!,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(
+                                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 60,
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) => Container(
+                                      color: Theme.of(context).colorScheme.primaryContainer,
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 60,
+                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    color: Theme.of(context).colorScheme.primaryContainer,
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 60,
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.surface,
+                                width: 3,
+                              ),
+                            ),
+                            child: IconButton(
+                              icon: _isUploading
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Theme.of(context).colorScheme.onPrimary,
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.camera_alt,
+                                      color: Theme.of(context).colorScheme.onPrimary,
+                                      size: 20,
+                                    ),
+                              onPressed: _isUploading ? null : _pickAndUploadImage,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -105,7 +264,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           Row(
-                            children: [
+                             children: [
                               Expanded(
                                 child: StatCard(
                                   icon: Icons.check_circle,
@@ -176,7 +335,6 @@ class ProfileScreen extends StatelessWidget {
                     title: 'Logout',
                     subtitle: 'Sign out of your account',
                     onTap: () async {
-                      // Reset app provider state before signing out
                       await provider.reset();
                       await FirebaseAuth.instance.signOut();
                       if (context.mounted) {
@@ -217,9 +375,11 @@ class StatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: color.withValues(alpha: 0.2),
+          width: 1,
         ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 32),
           const SizedBox(height: 12),
@@ -233,7 +393,7 @@ class StatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
           ),
@@ -265,10 +425,10 @@ class SettingsCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
           ),
         ),
         child: Row(
@@ -282,7 +442,6 @@ class SettingsCard extends StatelessWidget {
               child: Icon(
                 icon,
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
-                size: 24,
               ),
             ),
             const SizedBox(width: 16),
@@ -292,10 +451,11 @@ class SettingsCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -307,7 +467,7 @@ class SettingsCard extends StatelessWidget {
             ),
             Icon(
               Icons.chevron_right,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
             ),
           ],
         ),

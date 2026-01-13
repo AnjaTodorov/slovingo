@@ -9,6 +9,7 @@ class User {
   final DateTime createdAt;
   final DateTime updatedAt;
   List<String> streakDays;
+  final String? profileImageUrl;
 
   User({
     required this.id,
@@ -21,6 +22,7 @@ class User {
     required this.createdAt,
     required this.updatedAt,
     List<String>? streakDays,
+    this.profileImageUrl,
   }) : streakDays = streakDays ?? [];
 
   Map<String, dynamic> toJson() => {
@@ -33,6 +35,7 @@ class User {
     'lastActive': lastActive.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
+    'profileImageUrl': profileImageUrl,
   };
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -45,6 +48,7 @@ class User {
     lastActive: DateTime.parse(json['lastActive'] as String),
     createdAt: DateTime.parse(json['createdAt'] as String),
     updatedAt: DateTime.parse(json['updatedAt'] as String),
+    profileImageUrl: json['profileImageUrl'] as String?,
   );
 
   User copyWith({
@@ -58,6 +62,7 @@ class User {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<String>? streakDays,
+    String? profileImageUrl,
   }) => User(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -69,5 +74,6 @@ class User {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     streakDays: streakDays ?? this.streakDays,
+    profileImageUrl: profileImageUrl ?? this.profileImageUrl,
   );
 }

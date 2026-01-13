@@ -24,6 +24,7 @@ class FirestoreUserService {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       streakDays: streakDays,
+      profileImageUrl: data['profileImageUrl'] as String?,
     );
     return user;
   }
@@ -37,6 +38,7 @@ class FirestoreUserService {
       'xp': user.totalPoints,
       'streak': user.streak,
       'streakDays': user.streakDays,
+      'profileImageUrl': user.profileImageUrl,
       'createdAt': user.createdAt,
       'updatedAt': now,
     }, SetOptions(merge: true));

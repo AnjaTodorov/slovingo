@@ -25,6 +25,9 @@ dependencies:
   google_sign_in: ^6.2.1
   share_plus: ^12.0.1
   flutter_local_notifications: ^19.5.0
+  image_picker: ^1.2.1
+  firebase_storage: ^12.4.10
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -35,7 +38,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - .env
+    
+.env
 
 flutter_launcher_icons:
   android: true
