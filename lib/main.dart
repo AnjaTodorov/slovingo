@@ -13,6 +13,10 @@ import 'package:slovingo/screens/register_screen.dart';
 import 'package:slovingo/screens/main_navigation.dart';
 import 'package:slovingo/screens/quiz_screen.dart';
 import 'package:slovingo/screens/streak_calendar_screen.dart';
+import 'package:slovingo/screens/lesson_search_screen.dart';
+import 'package:slovingo/screens/statistics_screen.dart';
+import 'package:slovingo/screens/profile_screen.dart';
+import 'package:slovingo/screens/trophies_screen.dart';
 import 'package:slovingo/services/notification_service.dart';
 import 'package:slovingo/theme.dart';
 
@@ -82,6 +86,30 @@ class _MyAppState extends State<MyApp> {
         path: '/streak-calendar',
         pageBuilder: (context, state) => MaterialPage(
           child: const StreakCalendarScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/search-lessons',
+        pageBuilder: (context, state) => MaterialPage(
+          child: const LessonSearchScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/statistics',
+        pageBuilder: (context, state) => MaterialPage(
+          child: const StatisticsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/profile',
+        pageBuilder: (context, state) => MaterialPage(
+          child: const ProfileScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/trophies',
+        pageBuilder: (context, state) => MaterialPage(
+          child: const TrophiesScreen(),
         ),
       ),
     ],
