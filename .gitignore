@@ -33,3 +33,4 @@ android/app/build/
 *.iml
 
 .env
+android/app/google-services.json

@@ -17,7 +17,7 @@ class StorageService {
 
   Future<void> deleteProfileImage(String? imageUrl) async {
     if (imageUrl == null || imageUrl.isEmpty) return;
-
+    
     try {
       final ref = _storage.refFromURL(imageUrl);
       await ref.delete();

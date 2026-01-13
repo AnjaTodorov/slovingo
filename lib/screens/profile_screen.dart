@@ -7,6 +7,10 @@ import 'package:provider/provider.dart';
 import 'package:slovingo/providers/app_provider.dart';
 import 'package:slovingo/services/storage_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+<<<<<<< HEAD
+=======
+import 'package:flutter/services.dart';
+>>>>>>> cdd979c (add:profile picture functionality and statistics screen)
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -119,11 +123,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Profile',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                  Row(
+                    children: [
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      Text(
+                        'Profile',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 32),
                   Center(
@@ -144,30 +157,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ? CachedNetworkImage(
                                     imageUrl: user.profileImageUrl!,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, url) => Container(
-                                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                      child: Icon(
-                                        Icons.person,
-                                        size: 60,
-                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                                      ),
+                                    placeholder: (context, url) => Image.asset(
+                                      'assets/character.png',
+                                      fit: BoxFit.cover,
                                     ),
-                                    errorWidget: (context, url, error) => Container(
-                                      color: Theme.of(context).colorScheme.primaryContainer,
-                                      child: Icon(
-                                        Icons.person,
-                                        size: 60,
-                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                      ),
+                                    errorWidget: (context, url, error) => Image.asset(
+                                      'assets/character.png',
+                                      fit: BoxFit.cover,
                                     ),
                                   )
-                                : Container(
-                                    color: Theme.of(context).colorScheme.primaryContainer,
-                                    child: Icon(
-                                      Icons.person,
-                                      size: 60,
-                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                    ),
+                                : Image.asset(
+                                    'assets/character.png',
+                                    fit: BoxFit.cover,
                                   ),
                           ),
                         ),
@@ -241,7 +242,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               Expanded(
                                 child: StatCard(
-                                  icon: Icons.emoji_events,
+                                  icon: Icons.stars,
                                   title: 'Points',
                                   value: '${user?.totalPoints ?? 0}',
                                   color: Theme.of(context).colorScheme.tertiary,

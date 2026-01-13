@@ -29,7 +29,7 @@ class WordOfDayCard extends StatelessWidget {
             children: [
               Icon(
                 Icons.wb_sunny,
-                color: Theme.of(context).colorScheme.tertiary,
+                color: Theme.of(context).colorScheme.onTertiaryContainer,
                 size: 24,
               ),
               const SizedBox(width: 8),
