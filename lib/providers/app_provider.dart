@@ -159,6 +159,24 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  
+
+Future<void> updateProfileImage(String imageUrl) async {
+  if (_currentUser == null) return;
+
+  final updatedUser = _currentUser!.copyWith(
+    profileImageUrl: imageUrl,
+    updatedAt: DateTime.now(),
+  );
+
+  await _fsUserService.upsertUser(updatedUser);
+  _currentUser = updatedUser;
+  notifyListeners();
+}
+
+
+
+
   Future<void> updateStreak() async {
     if (_currentUser == null) return;
     final now = DateTime.now();
