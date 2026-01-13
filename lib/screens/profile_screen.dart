@@ -7,10 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:slovingo/providers/app_provider.dart';
 import 'package:slovingo/services/storage_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-<<<<<<< HEAD
-=======
-import 'package:flutter/services.dart';
->>>>>>> cdd979c (add:profile picture functionality and statistics screen)
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

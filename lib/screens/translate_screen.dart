@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:slovingo/providers/app_provider.dart';
+import 'package:intl/intl.dart';
 
 class TranslateScreen extends StatefulWidget {
   const TranslateScreen({super.key});
@@ -245,33 +246,150 @@ class _TranslateScreenState extends State<TranslateScreen> {
                   return Column(
                     children: provider.translationHistory.take(10).map((translation) {
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                            width: 1,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              translation.sourceText,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              translation.translatedText,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.w500,
+                            // Header with languages and timestamp
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(16),
+                                  topRight: Radius.circular(16),
+                                ),
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.primaryContainer,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      translation.sourceLang,
+                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                          ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: Icon(
+                                      Icons.arrow_forward,
+                                      size: 16,
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.secondaryContainer,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      translation.targetLang,
+                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                          ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Icon(
+                                    Icons.access_time,
+                                    size: 14,
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _formatTimestamp(translation.timestamp),
+                                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Translation content
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.only(top: 2, right: 12),
+                                        width: 4,
+                                        height: 16,
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).colorScheme.primary,
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          translation.sourceText,
+                                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.2),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Icon(
+                                          Icons.translate,
+                                          size: 18,
+                                          color: Theme.of(context).colorScheme.tertiary,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            translation.translatedText,
+                                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                                  color: Theme.of(context).colorScheme.onTertiaryContainer,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -285,6 +403,27 @@ class _TranslateScreenState extends State<TranslateScreen> {
         ),
       ),
     );
+  }
+
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+
+    if (difference.inDays > 0) {
+      if (difference.inDays == 1) {
+        return 'Yesterday';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays}d ago';
+      } else {
+        return DateFormat('MMM dd').format(timestamp);
+      }
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
   }
 
   @override
